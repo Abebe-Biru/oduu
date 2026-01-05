@@ -1,5 +1,3 @@
-/* REPLACE YOUR EXISTING app.js WITH THIS */
-
 const API_URL = 'http://localhost:3000';
 
 let state = {
