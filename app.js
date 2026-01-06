@@ -298,3 +298,29 @@ window.resetApp = () => { state = { page: 1, limit: 12, search: '', source: '', 
 
 // Init
 fetchNews();
+
+
+/* ===============================
+   OFFLINE DETECTION
+================================ */
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+
+function updateOnlineStatus() {
+  if (!navigator.onLine) {
+    Notiflix.Notify.warning('Interneetii hin qabdan. Oduu kuufame (Offline) dubbisaa jirtu.', {
+      timeout: 5000,
+      clickToClose: true
+    });
+    document.body.classList.add('grayscale'); // Visual cue: turn app B&W
+  } else {
+    Notiflix.Notify.success('Interneetiin deebi\'eera.', { timeout: 2000 });
+    document.body.classList.remove('grayscale');
+    fetchNews(); // Auto-refresh when internet comes back
+  }
+}
+
+// Check on load
+if (!navigator.onLine) {
+    updateOnlineStatus();
+}
