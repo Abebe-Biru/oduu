@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000';
+const API_URL = 'https://ethio-news-api.onrender.com/';
 
 let state = {
   page: 1,
