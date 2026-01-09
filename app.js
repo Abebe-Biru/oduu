@@ -1,7 +1,7 @@
 const API_URL = 'http://localhost:3000';
 
-// Cache for bookmark data
 let renderedArticlesCache = {}; 
+let newsContext = "";
 
 let state = {
   page: 1,
@@ -13,7 +13,6 @@ let state = {
   isBookmarkView: false
 };
 
-// DOM Elements
 const grid = document.getElementById('news-grid');
 const heroSection = document.getElementById('hero-section');
 const emptyState = document.getElementById('empty-state');
@@ -28,8 +27,19 @@ const daysSelect = document.getElementById('days-select');
 const limitSelect = document.getElementById('limit-select');
 const notifBtn = document.getElementById('notif-btn');
 
+const chatWindow = document.getElementById('chat-window');
+const chatMessages = document.getElementById('chat-messages');
+const chatForm = document.getElementById('chat-form');
+const chatInput = document.getElementById('chat-input');
+const botSettings = document.getElementById('bot-settings');
+const botApiKeyInput = document.getElementById('bot-api-key');
+
+// Badges
+const fabBadge = document.getElementById('fab-badge');
+const windowBadge = document.getElementById('chat-window-badge');
+
 /* ===============================
-   THEME MANAGEMENT
+   THEME
 ================================ */
 function initTheme() {
   if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -38,7 +48,6 @@ function initTheme() {
     document.documentElement.classList.remove('dark');
   }
 }
-
 function toggleTheme() {
   const html = document.documentElement;
   if (html.classList.contains('dark')) {
@@ -50,23 +59,19 @@ function toggleTheme() {
   }
   lucide.createIcons();
 }
-
 themeToggleBtn.addEventListener('click', toggleTheme);
 initTheme();
 
 /* ===============================
-   NOTIFICATION LOGIC
+   NOTIFICATIONS
 ================================ */
 function initNotifications() {
-  if (!('Notification' in window)) return; 
-  if (!notifBtn) return;
-  
+  if (!('Notification' in window) || !notifBtn) return;
   if (Notification.permission !== 'denied') {
     notifBtn.classList.remove('hidden');
     updateNotifIcon();
   }
 }
-
 function updateNotifIcon() {
   if (!notifBtn) return;
   const icon = notifBtn.querySelector('i');
@@ -80,13 +85,11 @@ function updateNotifIcon() {
     notifBtn.classList.add('text-slate-500', 'dark:text-slate-400');
   }
 }
-
 async function toggleNotifications() {
   if (!('Notification' in window)) {
     Notiflix.Notify.failure('Moobaayilli keessan Notification hin deeggaru.');
     return;
   }
-
   if (Notification.permission === 'granted') {
     Notiflix.Notify.info('Notification duran eeyyamameera.');
   } else if (Notification.permission !== 'denied') {
@@ -94,60 +97,25 @@ async function toggleNotifications() {
     if (permission === 'granted') {
       Notiflix.Notify.success('Notification eeyyamameera!');
       updateNotifIcon();
-      
       new Notification('ODEESSA', {
         body: 'Galatoomaa! Oduu haaraa yeroo argame isin beeksifna.',
         icon: 'https://cdn-icons-png.flaticon.com/512/2537/2537926.png'
       });
-      
     } else {
       Notiflix.Notify.warning('Notification dhorkameera.');
     }
   }
 }
-
 initNotifications();
 
 /* ===============================
-   UI INTERACTIONS
+   BOOKMARKS
 ================================ */
-function toggleMobileSearch() {
-    const bar = document.getElementById('mobile-search-bar');
-    bar.classList.toggle('hidden');
-    if(!bar.classList.contains('hidden')) {
-        setTimeout(() => document.getElementById('search-input-mobile').focus(), 100);
-    }
-}
-
-function handleSearch(query) {
-    state.search = query;
-    state.page = 1;
-    state.isBookmarkView = false;
-    document.getElementById('mobile-search-bar').classList.add('hidden');
-    document.getElementById('search-input-desktop').value = query;
-    document.getElementById('search-input-mobile').value = query;
-    fetchNews();
-}
-
-document.getElementById('search-form-desktop').addEventListener('submit', e => { e.preventDefault(); handleSearch(document.getElementById('search-input-desktop').value); });
-document.getElementById('search-form-mobile').addEventListener('submit', e => { e.preventDefault(); handleSearch(document.getElementById('search-input-mobile').value); });
-
-/* ===============================
-   BOOKMARK LOGIC
-================================ */
-function getBookmarks() {
-  return JSON.parse(localStorage.getItem('oduu_bookmarks') || '[]');
-}
-
-function isBookmarked(url) {
-  const bookmarks = getBookmarks();
-  return bookmarks.some(b => b.url === url);
-}
+function getBookmarks() { return JSON.parse(localStorage.getItem('oduu_bookmarks') || '[]'); }
+function isBookmarked(url) { return getBookmarks().some(b => b.url === url); }
 
 function toggleBookmark(e, url) {
   e.stopPropagation(); 
-  const clickedBtn = e.currentTarget;
-  
   let bookmarks = getBookmarks();
   const exists = bookmarks.find(b => b.url === url);
   let isNowSaved = false;
@@ -156,13 +124,12 @@ function toggleBookmark(e, url) {
     bookmarks = bookmarks.filter(b => b.url !== url);
     Notiflix.Notify.info('Kuuffadhe keessaa haqameera.');
     isNowSaved = false;
-    
     if (state.isBookmarkView) {
       if(bookmarks.length === 0) {
         grid.innerHTML = '';
         emptyState.classList.remove('hidden');
       } else {
-        renderGrid(bookmarks);
+        renderGrid(bookmarks); 
         lucide.createIcons(); 
       }
       localStorage.setItem('oduu_bookmarks', JSON.stringify(bookmarks));
@@ -176,14 +143,9 @@ function toggleBookmark(e, url) {
       isNowSaved = true;
     }
   }
-  
   localStorage.setItem('oduu_bookmarks', JSON.stringify(bookmarks));
-  
-  const allButtons = document.querySelectorAll('.bookmark-btn');
-  allButtons.forEach(btn => {
-    if (btn.dataset.url === url) {
-        styleBookmarkButton(btn, isNowSaved);
-    }
+  document.querySelectorAll('.bookmark-btn').forEach(btn => {
+    if (btn.dataset.url === url) styleBookmarkButton(btn, isNowSaved);
   });
 }
 
@@ -192,7 +154,6 @@ function styleBookmarkButton(btn, isSaved) {
     const isHero = btn.closest('#hero-section') !== null;
     btn.classList.add('scale-125');
     setTimeout(() => btn.classList.remove('scale-125'), 200);
-
     if (isSaved) {
         btn.classList.remove('text-slate-400', 'hover:bg-slate-100', 'dark:hover:bg-slate-700', 'bg-white/10', 'hover:bg-white/20', 'text-white');
         btn.classList.add('text-emerald-600', 'bg-emerald-50', 'dark:text-emerald-400', 'dark:bg-emerald-900/30');
@@ -200,11 +161,8 @@ function styleBookmarkButton(btn, isSaved) {
     } else {
         btn.classList.remove('text-emerald-600', 'bg-emerald-50', 'dark:text-emerald-400', 'dark:bg-emerald-900/30');
         if(icon) icon.setAttribute('fill', 'none');
-        if (isHero) {
-            btn.classList.add('text-white', 'bg-white/10', 'hover:bg-white/20');
-        } else {
-            btn.classList.add('text-slate-400', 'hover:bg-slate-100', 'dark:hover:bg-slate-700');
-        }
+        if (isHero) btn.classList.add('text-white', 'bg-white/10', 'hover:bg-white/20');
+        else btn.classList.add('text-slate-400', 'hover:bg-slate-100', 'dark:hover:bg-slate-700');
     }
 }
 
@@ -223,11 +181,173 @@ function toggleBookmarkView() {
   if (bookmarks.length === 0) {
     grid.innerHTML = '';
     emptyState.classList.remove('hidden');
+    updateNewsContext([]);
   } else {
     emptyState.classList.add('hidden');
-    renderGrid(bookmarks);
+    renderGrid(bookmarks); 
   }
   lucide.createIcons();
+}
+
+/* ===============================
+   ODUUBOT CHAT (FIXED BADGE)
+================================ */
+function toggleChat() {
+    const isOpen = chatWindow.classList.contains('scale-100');
+    
+    if (isOpen) {
+        // CLOSE
+        chatWindow.classList.remove('scale-100', 'opacity-100');
+        chatWindow.classList.add('scale-0', 'opacity-0');
+        // Show FAB badge, Hide Window badge
+        if(fabBadge) fabBadge.classList.remove('hidden');
+        if(windowBadge) windowBadge.classList.add('hidden');
+    } else {
+        // OPEN
+        chatWindow.classList.remove('scale-0', 'opacity-0');
+        chatWindow.classList.add('scale-100', 'opacity-100');
+        // Hide FAB badge, Show Window badge
+        if(fabBadge) fabBadge.classList.add('hidden');
+        if(windowBadge) windowBadge.classList.remove('hidden');
+        
+        setTimeout(() => chatInput.focus(), 300);
+    }
+}
+
+function toggleBotSettings() {
+    botSettings.classList.toggle('hidden');
+    if (!botSettings.classList.contains('hidden')) {
+        botApiKeyInput.value = localStorage.getItem('ODUU_AI_KEY') || '';
+    }
+}
+
+function saveBotSettings() {
+    const key = botApiKeyInput.value.trim();
+    if (key) {
+        localStorage.setItem('ODUU_AI_KEY', key);
+        Notiflix.Notify.success('Furtuun (Key) kusameera!');
+        toggleBotSettings();
+    }
+}
+
+// SCROLL AND HIGHLIGHT LOGIC (DELAYED)
+window.scrollToCard = (id) => {
+    const card = document.getElementById(`news-card-${id}`);
+    
+    // Logic for Hero Section (Index 1)
+    if (id == 1 && !card && !heroSection.classList.contains('hidden')) {
+        heroSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // Wait for scroll (600ms), then Highlight
+        setTimeout(() => {
+            const heroDiv = heroSection.firstElementChild;
+            heroDiv.classList.add('card-highlight');
+            setTimeout(() => heroDiv.classList.remove('card-highlight'), 2000);
+        }, 600);
+        
+        return;
+    }
+
+    // Logic for Grid Cards
+    if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // Wait for scroll (600ms), then Highlight
+        setTimeout(() => {
+            card.classList.add('card-highlight');
+            setTimeout(() => card.classList.remove('card-highlight'), 2000);
+        }, 600);
+        
+    } else {
+        Notiflix.Notify.warning(`Oduu lakk. ${id} fuula kana irra hin jiru.`);
+    }
+};
+
+function appendMessage(text, isUser) {
+    const div = document.createElement('div');
+    div.className = `flex flex-col gap-1 chat-bubble shadow-sm ${isUser ? 'user-msg' : 'bot-msg'}`;
+    if (!isUser && typeof marked !== 'undefined') {
+        let html = marked.parse(text);
+        html = html.replace(/\[(\d+)\]/g, '<span class="citation-link" onclick="scrollToCard($1)">$1</span>');
+        div.innerHTML = html;
+    } else {
+        div.textContent = text;
+    }
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    return div;
+}
+
+function appendTyping() {
+    const div = document.createElement('div');
+    div.className = `flex gap-1 chat-bubble shadow-sm bot-msg typing-indicator`;
+    div.innerHTML = `<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>`;
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    return div;
+}
+
+chatForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const text = chatInput.value.trim();
+    if (!text) return;
+
+    const apiKey = localStorage.getItem('ODUU_AI_KEY');
+    if (!apiKey) {
+        toggleBotSettings();
+        Notiflix.Report.warning('API Key Barbaachisa', 'Maaloo furtuu AddisAI/OpenAI keessan galchaa.', 'Ok');
+        return;
+    }
+
+    appendMessage(text, true);
+    chatInput.value = '';
+    const loadingDiv = appendTyping();
+
+    const systemPrompt = `You are Oduubot, an AI reporter for the ODEESSA platform.
+    
+    CONTEXT (LATEST NEWS ON SCREEN):
+    ${newsContext || "No news currently loaded."}
+    
+    INSTRUCTIONS:
+    1. Answer strictly based on the CONTEXT provided above.
+    2. You MUST cite the article number using this format: [1], [2].
+    3. Example: "Pires. [1] said that..." or "News about Arsenal [2]...".
+    4. If the user asks "What's new?", summarize the top 3 items with citations.
+    5. Keep answers concise and in Afaan Oromoo (unless asked otherwise).`;
+
+    try {
+        const response = await fetch("https://api.addisassistant.com/api/v1/chat_generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-API-Key": apiKey },
+            body: JSON.stringify({ 
+                prompt: `SYSTEM: ${systemPrompt}\n\nUSER: ${text}\nASSISTANT:`,
+                target_language: "om"
+            })
+        });
+        const data = await response.json();
+        loadingDiv.remove();
+        if (data && data.data && data.data.response_text) {
+            appendMessage(data.data.response_text, false);
+        } else {
+            appendMessage("Rakkoo: Deebii hin argamne.", false);
+        }
+    } catch (err) {
+        loadingDiv.remove();
+        appendMessage("Rakkoo networkii uumameera.", false);
+    }
+});
+
+/* ===============================
+   CONTEXT SYNC
+================================ */
+function updateNewsContext(items) {
+    if (!items || items.length === 0) {
+        newsContext = "";
+        return;
+    }
+    newsContext = items.map((item, index) => {
+        return `[${index + 1}] TITLE: ${item.title}\nSOURCE: ${item.source_name}\nSUMMARY: ${item.summary}\n`;
+    }).join('\n');
 }
 
 /* ===============================
@@ -237,7 +357,6 @@ async function fetchNews() {
   if (state.isBookmarkView) { toggleBookmarkView(); return; }
   
   Notiflix.Loading.standard('Oduu feʼaa jira...');
-  
   grid.innerHTML = '';
   heroSection.innerHTML = '';
   heroSection.classList.add('hidden');
@@ -263,9 +382,11 @@ async function fetchNews() {
 
     if (articles.length === 0) {
       emptyState.classList.remove('hidden');
+      updateNewsContext([]);
     } else {
       renderLayout(articles);
       updatePagination(data.pagination);
+      updateNewsContext(articles);
     }
     updateTitle();
     updateActiveFilterUI();
@@ -276,7 +397,6 @@ async function fetchNews() {
   } finally {
     Notiflix.Loading.remove();
     lucide.createIcons();
-    // NEW: Initialize Tooltips for Dynamic Content
     tippy('[data-tippy-content]', { animation: 'scale' });
   }
 }
@@ -300,7 +420,6 @@ async function triggerSync() {
             } else {
                 Notiflix.Notify.success('Oduu haaraa argachuuf sekondii muraasa eegaa');
             }
-            
             setTimeout(() => {
                 state.page = 1;
                 fetchNews();
@@ -334,7 +453,7 @@ function renderHero(article) {
   const sUrl = safeUrl(article.url);
   
   heroSection.innerHTML = `
-    <div onclick="openArticle('${sUrl}')" class="group relative w-full aspect-[4/5] sm:aspect-video md:h-[450px] lg:h-[500px] rounded-2xl md:rounded-3xl overflow-hidden cursor-pointer shadow-xl dark:shadow-none fade-in">
+    <div id="news-card-1" onclick="openArticle('${sUrl}')" class="group relative w-full aspect-[4/5] sm:aspect-video md:h-[450px] lg:h-[500px] rounded-2xl md:rounded-3xl overflow-hidden cursor-pointer shadow-xl dark:shadow-none fade-in">
       <img src="${article.image_url || 'https://placehold.co/800x600?text=ODUU'}" onerror="this.src='https://placehold.co/800x600?text=ODUU'" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-700 ease-out" />
       <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent opacity-90"></div>
       <button onclick="toggleBookmark(event, '${sUrl}')" data-url="${article.url}" data-tippy-content="${isSaved ? 'Kuuffadhe keessaa haqi' : 'Kuuffadhu'}" class="bookmark-btn absolute top-4 right-4 p-3 rounded-full backdrop-blur-md transition-all duration-200 z-20 ${isSaved ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30' : 'bg-white/10 hover:bg-white/20 text-white'}">
@@ -355,11 +474,17 @@ function renderHero(article) {
 
 function renderGrid(items) {
   if (items.length === 0 && !state.isBookmarkView) return;
+  
+  if(state.isBookmarkView) updateNewsContext(items);
+
   grid.innerHTML = items.map((a, index) => {
     const isSaved = isBookmarked(a.url);
     const sUrl = safeUrl(a.url);
+    const hasHero = (state.page === 1 && !state.search && !state.isBookmarkView);
+    const displayIndex = hasHero ? index + 2 : index + 1;
+
     return `
-    <article class="bg-white dark:bg-slate-800 rounded-xl md:rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-xl dark:shadow-slate-900/50 hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col h-full fade-in" style="animation-delay: ${Math.min(index * 50, 300)}ms" onclick="openArticle('${sUrl}')">
+    <article id="news-card-${displayIndex}" class="bg-white dark:bg-slate-800 rounded-xl md:rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-xl dark:shadow-slate-900/50 hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col h-full fade-in" style="animation-delay: ${Math.min(index * 50, 300)}ms" onclick="openArticle('${sUrl}')">
       <div class="relative h-44 sm:h-48 overflow-hidden">
         <img src="${a.image_url || 'https://placehold.co/600x400?text=ODUU'}" onerror="this.src='https://placehold.co/600x400?text=Image+Error'" class="w-full h-full object-cover transition duration-500 hover:scale-110" />
         <div class="absolute top-2.5 left-2.5"><span class="bg-white/95 dark:bg-slate-900/90 backdrop-blur text-slate-900 dark:text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm border border-slate-100 dark:border-slate-700">${a.source_name}</span></div>

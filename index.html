@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2537/2537926.png">
 
-  <title>ODEESSA — Oromo Information Network</title>
+  <title>ODEESSA — Ethiopians Information Network</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -33,17 +33,15 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
   
-  <!-- Tooltip Libraries -->
   <script src="https://unpkg.com/@popperjs/core@2"></script>
   <script src="https://unpkg.com/tippy.js@6"></script>
   <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/animations/scale.css" />
-
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notiflix/dist/notiflix-3.2.6.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/notiflix/dist/notiflix-3.2.6.min.js"></script>
 
   <style>
-    /* Smooth Transitions */
     body, header, div, section, article, p, h1, h2, h3, span, input, button, select, nav {
       transition-property: background-color, border-color, color, fill, stroke, transform, opacity, height;
       transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
@@ -67,6 +65,42 @@
     
     .spin-anim { animation: spin 1s linear infinite; }
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    /* ODUUBOT STYLES */
+    #oduubot-widget { z-index: 9999; }
+    .chat-bubble { max-width: 85%; padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.5; }
+    .chat-bubble p { margin-bottom: 6px; }
+    .chat-bubble p:last-child { margin-bottom: 0; }
+    .chat-bubble ul { list-style: disc; margin-left: 20px; }
+    .user-msg { background: #10B981; color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+    .bot-msg { background: #F1F5F9; color: #1e293b; align-self: flex-start; border-bottom-left-radius: 2px; }
+    .dark .bot-msg { background: #1e293b; color: #e2e8f0; }
+    
+    .typing-dot { width: 6px; height: 6px; background: #94a3b8; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
+    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+
+    .citation-link {
+        display: inline-flex; align-items: center; justify-content: center;
+        background-color: #10B981; color: white; font-size: 10px; font-weight: bold;
+        padding: 0 4px; border-radius: 4px; cursor: pointer; margin: 0 2px;
+        vertical-align: middle; text-decoration: none; box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        transition: transform 0.1s;
+    }
+    .citation-link:hover { transform: scale(1.1); background-color: #059669; }
+    .dark .citation-link { background-color: #059669; }
+
+    /* IMPROVED HIGHLIGHT (Background Flash) */
+    @keyframes highlight-pulse {
+        0% { background-color: rgba(16, 185, 129, 0.2); box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.4); }
+        50% { background-color: rgba(16, 185, 129, 0.1); box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2); }
+        100% { background-color: transparent; box-shadow: none; }
+    }
+    .card-highlight { 
+        animation: highlight-pulse 2s ease-out; 
+        transition: background-color 0.5s;
+    }
   </style>
 </head>
 
@@ -95,7 +129,6 @@
             <i id="sync-icon" data-lucide="refresh-cw" class="w-5 h-5"></i>
         </button>
 
-        <!-- NOTIFICATION BUTTON -->
         <button id="notif-btn" onclick="toggleNotifications()" data-tippy-content="Yaadachiisa (Notifications)" class="p-2.5 rounded-full text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors active:scale-95 hidden">
             <i data-lucide="bell" class="w-5 h-5"></i>
         </button>
@@ -199,17 +232,72 @@
       <div class="flex items-center gap-2">
          <span class="font-black tracking-tighter text-slate-900 dark:text-white">ODEESSA<span class="text-emerald-600">.</span></span>
       </div>
-      <p class="text-slate-400 dark:text-slate-500 text-xs md:text-sm">© 2026 Oromo Information Network. Built for Community.</p>
+      <p class="text-slate-400 dark:text-slate-500 text-xs md:text-sm">© 2026 Ethiopians Information Network. Built for Community.</p>
     </div>
   </footer>
+
+  <!-- ODUUBOT WIDGET -->
+  <div id="oduubot-widget" class="fixed bottom-6 right-6 flex flex-col items-end gap-4 pointer-events-none">
+    
+    <div id="chat-window" class="pointer-events-auto bg-white dark:bg-slate-900 w-[90vw] md:w-96 h-[500px] max-h-[70vh] rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col transform transition-all duration-300 origin-bottom-right scale-0 opacity-0 overflow-hidden">
+      <div class="bg-emerald-600 p-4 flex items-center justify-between text-white shrink-0">
+        <div class="flex items-center gap-2">
+          <div class="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm relative">
+            <i data-lucide="bot" class="w-5 h-5 text-white"></i>
+            <span id="chat-window-badge" class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 border-2 border-emerald-600 rounded-full hidden"></span>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm leading-tight">Oduubot AI</h3>
+            <p class="text-[10px] text-emerald-100 opacity-90">Oduu Ammee Irratti Hundaa'e</p>
+          </div>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="toggleBotSettings()" data-tippy-content="Qindaa'ina" class="p-1.5 hover:bg-white/20 rounded-full transition"><i data-lucide="settings" class="w-4 h-4"></i></button>
+            <button onclick="toggleChat()" data-tippy-content="Cufi" class="p-1.5 hover:bg-white/20 rounded-full transition"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+      </div>
+
+      <div id="bot-settings" class="absolute inset-0 bg-white/95 dark:bg-slate-900/95 z-50 flex flex-col p-6 hidden">
+        <h4 class="font-bold text-slate-900 dark:text-white mb-4">Qindaa'ina Oduubot</h4>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">Furtuu API (AddisAI)</label>
+                <input type="password" id="bot-api-key" placeholder="sk-..." class="w-full p-2 rounded border border-slate-300 dark:border-slate-700 bg-transparent text-sm dark:text-white">
+            </div>
+            <button onclick="saveBotSettings()" data-tippy-content="Kuusi" class="w-full py-2 bg-emerald-600 text-white rounded-lg font-medium text-sm">Kuusi</button>
+            <button onclick="toggleBotSettings()" data-tippy-content="Dhiisi" class="w-full py-2 text-slate-500 text-sm">Dhiisi</button>
+        </div>
+      </div>
+
+      <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50 dark:bg-[#0f172a]">
+        <div class="flex flex-col gap-1 bot-msg chat-bubble shadow-sm">
+            <p><strong>Akkam!</strong> Ani Oduubot dha. Oduu amma fuula kana irra jiru irratti hundaa'uun gaaffii qabdan na gaafadhaa.</p>
+        </div>
+      </div>
+
+      <div class="p-3 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 shrink-0">
+        <form id="chat-form" class="flex gap-2">
+            <input id="chat-input" type="text" placeholder="Gaaffii gaafadhaa..." class="flex-1 bg-slate-100 dark:bg-slate-800 border-0 rounded-full px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 dark:text-white" autocomplete="off">
+            <button type="submit" data-tippy-content="Ergi" class="bg-emerald-600 hover:bg-emerald-700 text-white p-2.5 rounded-full transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
+                <i data-lucide="send" class="w-4 h-4"></i>
+            </button>
+        </form>
+      </div>
+    </div>
+
+    <button onclick="toggleChat()" id="oduubot-fab" data-tippy-content="Oduubot wajjin haasa'i" class="pointer-events-auto w-14 h-14 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full shadow-lg shadow-emerald-600/30 flex items-center justify-center transition-transform hover:scale-105 active:scale-95 group relative">
+      <i data-lucide="message-square" class="w-7 h-7 absolute transition-all duration-300 group-hover:opacity-0 group-hover:scale-75"></i>
+      <i data-lucide="bot" class="w-7 h-7 absolute opacity-0 scale-75 transition-all duration-300 group-hover:opacity-100 group-hover:scale-100"></i>
+      <span id="fab-badge" class="absolute top-1 right-1 w-3.5 h-3.5 bg-red-500 border-2 border-white dark:border-slate-900 rounded-full"></span>
+    </button>
+
+  </div>
 
   <script src="app.js"></script>
   <script>
     lucide.createIcons();
     const options = { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' };
     document.getElementById('date-display').textContent = new Date().toLocaleDateString('om-ET', options);
-    
-    // Initialize Static Tooltips immediately
     tippy('[data-tippy-content]', { animation: 'scale' });
   </script>
 
