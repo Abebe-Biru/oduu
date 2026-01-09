@@ -1,4 +1,4 @@
-# ODUU — Oromo Information Network 📰
+# ODEESSA — Ethiopians Information Network 📰
 
 ![Status](https://img.shields.io/badge/Status-Active-success)
 ![PWA](https://img.shields.io/badge/PWA-Ready-blue)
