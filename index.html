@@ -32,6 +32,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
+  
+  <!-- Tooltip Libraries -->
+  <script src="https://unpkg.com/@popperjs/core@2"></script>
+  <script src="https://unpkg.com/tippy.js@6"></script>
+  <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/animations/scale.css" />
+
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notiflix/dist/notiflix-3.2.6.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/notiflix/dist/notiflix-3.2.6.min.js"></script>
@@ -69,7 +75,7 @@
   <header class="sticky top-0 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
       
-      <div id="tour-logo" onclick="resetApp()" class="cursor-pointer flex items-center gap-2 group flex-shrink-0 select-none">
+      <div id="tour-logo" onclick="resetApp()" class="cursor-pointer flex items-center gap-2 group flex-shrink-0 select-none" data-tippy-content="Jalqabatti Deebi'i">
         <div class="bg-emerald-600 text-white p-1.5 rounded-lg group-hover:rotate-6 transition duration-300 shadow-lg shadow-emerald-500/20">
           <i data-lucide="newspaper" class="w-5 h-5"></i>
         </div>
@@ -85,16 +91,16 @@
       </form>
 
       <div class="flex items-center gap-1.5 md:gap-2">
-        <button id="sync-btn" onclick="triggerSync()" class="p-2.5 rounded-full text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors active:scale-95">
+        <button id="sync-btn" onclick="triggerSync()" data-tippy-content="Oduu Haaraa Funaani" class="p-2.5 rounded-full text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors active:scale-95">
             <i id="sync-icon" data-lucide="refresh-cw" class="w-5 h-5"></i>
         </button>
 
         <!-- NOTIFICATION BUTTON -->
-        <button id="notif-btn" onclick="toggleNotifications()" class="p-2.5 rounded-full text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors active:scale-95 hidden">
+        <button id="notif-btn" onclick="toggleNotifications()" data-tippy-content="Yaadachiisa (Notifications)" class="p-2.5 rounded-full text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors active:scale-95 hidden">
             <i data-lucide="bell" class="w-5 h-5"></i>
         </button>
 
-        <button id="theme-toggle" class="p-2.5 rounded-full text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors relative overflow-hidden active:scale-95">
+        <button id="theme-toggle" data-tippy-content="Bifa Jijjiiri (Dark/Light)" class="p-2.5 rounded-full text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors relative overflow-hidden active:scale-95">
             <i id="theme-icon-sun" data-lucide="sun" class="w-5 h-5 hidden dark:block text-amber-400"></i>
             <i id="theme-icon-moon" data-lucide="moon" class="w-5 h-5 block dark:hidden text-slate-600"></i>
         </button>
@@ -202,6 +208,9 @@
     lucide.createIcons();
     const options = { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' };
     document.getElementById('date-display').textContent = new Date().toLocaleDateString('om-ET', options);
+    
+    // Initialize Static Tooltips immediately
+    tippy('[data-tippy-content]', { animation: 'scale' });
   </script>
 
   <script>

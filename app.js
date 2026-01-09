@@ -7,7 +7,7 @@ let state = {
   page: 1,
   limit: 12,
   search: '',
-  source: '', // Empty means "Hunda" (All)
+  source: '', 
   days: 7,
   totalPages: 1,
   isBookmarkView: false
@@ -236,7 +236,6 @@ function toggleBookmarkView() {
 async function fetchNews() {
   if (state.isBookmarkView) { toggleBookmarkView(); return; }
   
-  // Only show loading if not a background refresh
   Notiflix.Loading.standard('Oduu feʼaa jira...');
   
   grid.innerHTML = '';
@@ -254,7 +253,7 @@ async function fetchNews() {
         limit: state.limit,
         days: state.days,
         search: state.search,
-        source: state.source // When source is '', it fetches "All"
+        source: state.source 
     });
     const res = await fetch(`${API_URL}/articles?${params}`);
     if (!res.ok) throw new Error('Network response was not ok');
@@ -277,6 +276,8 @@ async function fetchNews() {
   } finally {
     Notiflix.Loading.remove();
     lucide.createIcons();
+    // NEW: Initialize Tooltips for Dynamic Content
+    tippy('[data-tippy-content]', { animation: 'scale' });
   }
 }
 
@@ -336,7 +337,7 @@ function renderHero(article) {
     <div onclick="openArticle('${sUrl}')" class="group relative w-full aspect-[4/5] sm:aspect-video md:h-[450px] lg:h-[500px] rounded-2xl md:rounded-3xl overflow-hidden cursor-pointer shadow-xl dark:shadow-none fade-in">
       <img src="${article.image_url || 'https://placehold.co/800x600?text=ODUU'}" onerror="this.src='https://placehold.co/800x600?text=ODUU'" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-700 ease-out" />
       <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent opacity-90"></div>
-      <button onclick="toggleBookmark(event, '${sUrl}')" data-url="${article.url}" class="bookmark-btn absolute top-4 right-4 p-3 rounded-full backdrop-blur-md transition-all duration-200 z-20 ${isSaved ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30' : 'bg-white/10 hover:bg-white/20 text-white'}">
+      <button onclick="toggleBookmark(event, '${sUrl}')" data-url="${article.url}" data-tippy-content="${isSaved ? 'Kuuffadhe keessaa haqi' : 'Kuuffadhu'}" class="bookmark-btn absolute top-4 right-4 p-3 rounded-full backdrop-blur-md transition-all duration-200 z-20 ${isSaved ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30' : 'bg-white/10 hover:bg-white/20 text-white'}">
         <i data-lucide="bookmark" class="w-5 h-5 ${isSaved ? 'fill-current' : ''}"></i>
       </button>
       <div class="absolute bottom-0 left-0 p-5 md:p-10 max-w-3xl w-full">
@@ -368,7 +369,7 @@ function renderGrid(items) {
         <h3 class="text-base md:text-lg font-bold text-slate-900 dark:text-white mb-2 leading-snug group-hover:text-emerald-700 dark:group-hover:text-emerald-400 serif-font line-clamp-3">${a.title}</h3>
         <p class="text-sm text-slate-500 dark:text-slate-400 line-clamp-3 mb-4 flex-1">${a.summary || ''}</p>
         <div class="mt-auto pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">
-          <button onclick="toggleBookmark(event, '${sUrl}')" data-url="${a.url}" class="bookmark-btn p-2 rounded-full transition-all duration-200 active:scale-95 ${isSaved ? 'text-emerald-600 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-900/30' : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'}"><i data-lucide="bookmark" class="w-4 h-4 ${isSaved ? 'fill-current' : ''}"></i></button>
+          <button onclick="toggleBookmark(event, '${sUrl}')" data-url="${a.url}" data-tippy-content="${isSaved ? 'Kuuffadhe keessaa haqi' : 'Kuuffadhu'}" class="bookmark-btn p-2 rounded-full transition-all duration-200 active:scale-95 ${isSaved ? 'text-emerald-600 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-900/30' : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'}"><i data-lucide="bookmark" class="w-4 h-4 ${isSaved ? 'fill-current' : ''}"></i></button>
           <div class="flex items-center gap-2"><span class="text-xs text-slate-400 dark:text-slate-500 font-medium">Dubbisuu</span><div class="bg-slate-50 dark:bg-slate-700 p-1.5 md:p-2 rounded-full text-slate-400 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 hover:text-emerald-600 dark:hover:text-emerald-400 transition"><i data-lucide="arrow-right" class="w-4 h-4"></i></div></div>
         </div>
       </div>
@@ -403,12 +404,7 @@ function updateActiveFilterUI() {
     let isActive = false;
     if (state.isBookmarkView) isActive = isSavedBtn;
     else isActive = !isSavedBtn && btn.getAttribute('data-source') === state.source;
-    
-    btn.className = `filter-btn flex-shrink-0 px-4 py-1.5 text-sm font-medium rounded-full border whitespace-nowrap cursor-pointer transition-all ${
-      isActive 
-      ? 'bg-slate-900 text-white border-slate-900 shadow-lg shadow-slate-900/20 dark:bg-emerald-600 dark:text-white dark:border-emerald-600 dark:shadow-emerald-900/20' 
-      : 'bg-white text-slate-600 border-slate-200 hover:border-emerald-500 hover:text-emerald-600 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700 dark:hover:border-emerald-400 dark:hover:text-emerald-400'
-    }`;
+    btn.className = `filter-btn flex-shrink-0 px-4 py-1.5 text-sm font-medium rounded-full border whitespace-nowrap cursor-pointer transition-all ${isActive ? 'bg-slate-900 text-white border-slate-900 shadow-lg shadow-slate-900/20 dark:bg-emerald-600 dark:text-white dark:border-emerald-600 dark:shadow-emerald-900/20' : 'bg-white text-slate-600 border-slate-200 hover:border-emerald-500 hover:text-emerald-600 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700 dark:hover:border-emerald-400 dark:hover:text-emerald-400'}`;
     if (isSavedBtn) btn.classList.add('flex', 'items-center', 'gap-2');
   });
   daysSelect.value = state.days;
@@ -449,8 +445,6 @@ function updateOnlineStatus() {
 }
 
 // INITIALIZATION
-// 1. Force UI to look "Ready" immediately
 updateActiveFilterUI();
-// 2. Then Fetch
 if (navigator.onLine) fetchNews();
 else updateOnlineStatus();

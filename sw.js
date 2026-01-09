@@ -1,5 +1,5 @@
-const CACHE_NAME = 'oduu-static-v7'; // <--- UPDATED to v7
-const DYNAMIC_CACHE = 'oduu-dynamic-v7'; // <--- UPDATED to v7
+const CACHE_NAME = 'oduu-static-v8'; // <--- Bumped to v8
+const DYNAMIC_CACHE = 'oduu-dynamic-v8';
 
 // 1. Local Assets
 const LOCAL_ASSETS = [
@@ -9,7 +9,7 @@ const LOCAL_ASSETS = [
   './manifest.json'
 ];
 
-// 2. External Assets
+// 2. External Assets (Added Tippy & Popper)
 const EXTERNAL_ASSETS = [
   'https://cdn.tailwindcss.com',
   'https://unpkg.com/lucide@latest',
@@ -17,7 +17,11 @@ const EXTERNAL_ASSETS = [
   'https://cdn.jsdelivr.net/npm/notiflix/dist/notiflix-3.2.6.min.js',
   'https://cdn.jsdelivr.net/npm/shepherd.js@11.2.0/dist/css/shepherd.css',
   'https://cdn.jsdelivr.net/npm/shepherd.js@11.2.0/dist/js/shepherd.min.js',
-  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:ital,wght@0,400;0,700;0,900;1,400&display=swap'
+  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:ital,wght@0,400;0,700;0,900;1,400&display=swap',
+  // NEW TOOLTIP LIBS
+  'https://unpkg.com/@popperjs/core@2',
+  'https://unpkg.com/tippy.js@6',
+  'https://unpkg.com/tippy.js@6/animations/scale.css'
 ];
 
 // INSTALL
@@ -82,7 +86,7 @@ self.addEventListener('fetch', (evt) => {
   }
 });
 
-// PUSH & NOTIFICATIONS
+// PUSH
 self.addEventListener('push', (event) => {
   if (event.data) {
     const data = event.data.json();
