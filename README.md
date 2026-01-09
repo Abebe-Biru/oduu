@@ -4,7 +4,7 @@
 ![PWA](https://img.shields.io/badge/PWA-Ready-blue)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
-**ODUU** is a modern, responsive **Progressive Web App (PWA)** that aggregates news from major Oromo media outlets (BBC Afaan Oromoo, OBN, FNN) into a single, distraction-free interface.
+**ODEESSA** is a modern, responsive **Progressive Web App (PWA)** that aggregates news from major Oromo media outlets (BBC Afaan Oromoo, OBN, FNN) into a single, distraction-free interface.
 
 ## 🚀 Features
 
