@@ -1,4 +1,5 @@
-const API_URL = 'http://localhost:3000';
+// --- UPDATED API URL (DEPLOYED) ---
+const API_URL = 'https://ethio-news-api.onrender.com';
 
 let renderedArticlesCache = {}; 
 let newsContext = "";
@@ -230,7 +231,6 @@ function saveBotSettings() {
     }
 }
 
-// SCROLL AND HIGHLIGHT LOGIC (DELAYED)
 window.scrollToCard = (id) => {
     const card = document.getElementById(`news-card-${id}`);
     
@@ -474,9 +474,6 @@ function renderHero(article) {
 
 function renderGrid(items) {
   if (items.length === 0 && !state.isBookmarkView) return;
-  
-  if(state.isBookmarkView) updateNewsContext(items);
-
   grid.innerHTML = items.map((a, index) => {
     const isSaved = isBookmarked(a.url);
     const sUrl = safeUrl(a.url);
