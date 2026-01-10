@@ -295,7 +295,7 @@ chatForm.addEventListener('submit', async (e) => {
     const apiKey = localStorage.getItem('ODUU_AI_KEY');
     if (!apiKey) {
         toggleBotSettings();
-        Notiflix.Report.warning('API Key Barbaachisa', 'Maaloo furtuu AddisAI/OpenAI keessan galchaa.', 'Ok');
+        Notiflix.Report.warning('API Key Barbaachisa', 'Maaloo furtuu AddisAI keessan galchaa.', 'Ok');
         return;
     }
 
