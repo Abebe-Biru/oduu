@@ -29,10 +29,10 @@ Ensure you have **Node.js** installed.
 ### 2. Installation
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/oduu-news.git
+git clone https://github.com/yourusername/oduu.git
 
 # Navigate to directory
-cd oduu-news
+cd oduu
 
 # Install dependencies
 npm install
